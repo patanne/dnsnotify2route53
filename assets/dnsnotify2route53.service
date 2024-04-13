@@ -1,0 +1,13 @@
+[Unit]
+Description=This unit will start after internet connection
+After=network.target
+Wants=network-online.target
+
+[Service]
+Restart=always
+Type=simple
+ExecStart=python3 /opt/dnsnotify2route53/start.py --daemon
+Environment=
+
+[Install]
+WantedBy=multi-user.target
