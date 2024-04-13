@@ -19,6 +19,8 @@ def listen_for_notify():
 
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.bind((address, port))
+    message = f"listener created at {datetime.datetime.now().strftime(globals.timestamp_format)}."
+    logging.info(message)
     while True:
         (wire, address) = s.recvfrom(512)
         notify = dns.message.from_wire(wire)

@@ -105,8 +105,9 @@ class aws_changes:
 	def to_AWS(self):
 		full_change = dict()
 		full_change['Changes'] = self._change_list
-		j = json.dumps(full_change, indent=2)
-		print(j)
+		if globals.DEBUG:
+			j = json.dumps(full_change, indent=2)
+			print(j)
 
 		client.change_resource_record_sets(HostedZoneId=self.zone_id,ChangeBatch=full_change)
 

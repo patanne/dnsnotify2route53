@@ -1,9 +1,11 @@
 import globals
 import json
+import os
 from collections import namedtuple
 
 def load_config():
-	with open('config.json') as json_data:
+	config_file_path = os.path.join(os.path.dirname(__file__), "config.json")
+	with open(config_file_path) as json_data:
 		globals.config = json.load(json_data,object_hook=ConfigJsonDecode)
 		json_data.close()
 

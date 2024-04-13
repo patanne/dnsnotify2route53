@@ -6,7 +6,7 @@ Wants=network-online.target
 [Service]
 Restart=always
 Type=simple
-ExecStart=python3 /opt/dnsnotify2route53/start.py --daemon
+ExecStart=/usr/bin/python3 /opt/dnsnotify2route53/start.py --daemon
 Environment=
 
 [Install]
