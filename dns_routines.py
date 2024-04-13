@@ -29,19 +29,28 @@ def get_dns_zone(server,zone_name):
 				record = DNS_zone_record_CNAME(name,rrr.target.to_text())
 			case resource_type.MX:
 				record = DNS_zone_record_MX(name,rrr.preference,rrr.exchange.to_text(),ttl)
+			case resource_type.SRV:
+				service	= name.split('.')[0]
+				protocol= name.split('.')[1]
+				target	= rrr.target.labels[0].decode(globals.encoding)
+				record = DNS_zone_record_SRV(service,protocol,name,rrr.priority,rrr.weight,rrr.port,target,ttl)
 			case resource_type.TXT:
 				if len(rrr.strings) == 1:
 					value = rrr.strings[0].decode(globals.encoding)
+					record = DNS_zone_record_TXT(name, value, ttl)
 				else:
-					value = []
+					record	= []
 					for segment in rrr.strings:
-						value.append(segment.decode(globals.encoding))
+						value = segment.decode(globals.encoding)
+						record.append(DNS_zone_record_TXT(name, value, ttl))
 					del segment
-				record = DNS_zone_record_TXT(name,value,ttl)
 				del value
 			case _:
 				logging.warning(f"unhandled record type: {resource_type.to_text(rrr.rdtype.value)}")
 				continue
 
-		dns_zone.append(record)
+		if isinstance(record,list):
+			for individual_rr in record: dns_zone.add(individual_rr)
+		else:
+			dns_zone.add(record)
 	return dns_zone

@@ -1,9 +1,12 @@
 import argparse
+import datetime
 import sys
+import threading
 
 from aws_routines import *
 from dns_routines import *
 from config import *
+from notify_listen import listen_for_notify
 
 import globals
 globals.init()
@@ -41,7 +44,7 @@ def get_zone_changes(some_zone):
 
 	for internal_record in internal_zone:
 		if aws_zone.exists(internal_record):
-			aws_record = aws_zone.get_peer(internal_record)
+			aws_record = aws_zone.get_peer_container(internal_record)
 			if internal_record != aws_record: chg_list.append(internal_record)
 		else:
 			add_list.append(internal_record)
@@ -52,6 +55,32 @@ def get_zone_changes(some_zone):
 
 	return add_list, chg_list, del_list
 
+def process_zones(zone_list):
+	# get our three lists. inefficient? perhaps. but it works.
+	for some_zone in zone_list:
+		add_list, chg_list, del_list = get_zone_changes(some_zone)
+
+		changes = aws_changes(some_zone.id)
+
+		there_are_changes=False
+		for change in add_list:
+			there_are_changes=True
+			name, type, ttl, value = change.for_AWS()
+			changes.change__simple_value("CREATE", type, name, ttl, value)
+
+		for change in chg_list:
+			there_are_changes=True
+			name, type, ttl, value = change.for_AWS()
+			changes.change__simple_value("UPSERT", type, name, ttl, value)
+
+		for change in del_list:
+			there_are_changes=True
+			name, type, ttl, value = change.for_AWS()
+			changes.change__simple_value("DELETE", type, name, ttl, value)
+
+		if there_are_changes:
+			changes.to_AWS()
+
 def first_start():
 	# get all zones hosted on AWS
 	zone_dict = get_aws_all_hosted_zones()
@@ -60,36 +89,28 @@ def first_start():
 	if globals.config.domains_to_manage_from_aws:
 		zone_list = [hosted_zone for hosted_zone in zone_dict.values()]
 	else:
+		# the logic here stops us from accidentally trying to process a zone not already created in route53
 		zone_list = [hosted_zone[1] for hosted_zone in zone_dict.items() if hosted_zone[0] in globals.config.domains_to_manage]
 
-	# get our three lists. inefficient? perhaps. but it works.
-	for some_zone in zone_list:
-		add_list, chg_list, del_list = get_zone_changes(some_zone)
+	process_zones(zone_list)
 
-		changes = aws_changes(some_zone.id)
+	message = f"ran 'first_start' routine at {datetime.datetime.now().strftime(globals.timestamp_format)} local time."
+	logging.info(message)
+	print(message)
 
-		# for change in add_list:
-		# 	name, type, ttl, value = change.for_AWS()
-		# 	changes.change__simple_value("CREATE", type, name, ttl, value)
-
-		for change in chg_list:
-			name, type, ttl, value = change.for_AWS()
-			changes.change__simple_value("UPSERT", type, name, ttl, value)
-
-		for change in del_list:
-			name, type, ttl, value = change.for_AWS()
-			changes.change__simple_value("DELETE", type, name, ttl, value)
-
-		changes.patch_multi()
-		changes.to_AWS()
-
-	if globals.DEBUG:
-		print("--- add ---")
-		print([x.unique_key for x in add_list])
-		print("--- del---")
-		print([x.unique_key for x in del_list])
-		print("--- change ---")
-		print([x.unique_key for x in chg_list])
+def queue_processor():
+	keep_running = True
+	while keep_running:
+		zone,serial = globals.wq.get()
+		zones_received = [zone]
+		zone_dict = get_aws_all_hosted_zones()
+		zone_list = [hosted_zone[1] for hosted_zone in zone_dict.items() if hosted_zone[0] in zones_received]
+		process_zones(zone_list)
+		message = f"worker processed {zone} with serial '{serial}' processed at {datetime.datetime.now().strftime(globals.timestamp_format)} local time."
+		print(message)
+		logging.info(message)
+		globals.wq.task_done()
+		# thread.sleep(2)
 
 
 if __name__ == "__main__":
@@ -99,3 +120,10 @@ if __name__ == "__main__":
 
 	# logging.info(args)
 	first_start()
+
+
+	if globals.args.daemon:
+		notify_listener = threading.Thread(target=listen_for_notify)
+		queue_worker 	= threading.Thread(target=queue_processor)
+		queue_worker.start()
+		notify_listener.start()

@@ -52,33 +52,42 @@ def get_aws_zone(zone_object):
 			case 'NS': continue
 			case 'SOA':
 				rrl = response['ResourceRecords'][0]['Value'].split(' ')
-				record = DNS_zone_record_SOA(rrl[0],rrl[1],zone_object.domain_name,rrl[2],rrl[3],rrl[4],rrl[5],rrl[6])
+				record = DNS_zone_record_SOA(rrl[0],rrl[1],zone_object.domain_name,int(rrl[2]),int(rrl[3]),int(rrl[4]),int(rrl[5]),int(rrl[6]))
 				del rrl
 			case 'A':
 				record = DNS_zone_record_A(name,response['ResourceRecords'][0]['Value'],ttl)
 			case 'CNAME':
 				record = DNS_zone_record_CNAME(name,response['ResourceRecords'][0]['Value'],ttl)
 			case 'MX':
-				preference	= response['ResourceRecords'][0]['Value'].split(' ')[0]
-				exchange	= response['ResourceRecords'][0]['Value'].split(' ')[1]
-				record		= DNS_zone_record_MX(name,preference,exchange,ttl)
-				del exchange, preference
+				record = []
+				for rr in response['ResourceRecords']:
+					preference	= rr['Value'].split(' ')[0]
+					exchange	= rr['Value'].split(' ')[1]
+					record.append(DNS_zone_record_MX(name,int(preference),exchange,ttl))
+					del exchange, preference
+			case 'SRV':
+				info_1 = name.split('.')
+				info_2 = response['ResourceRecords'][0]['Value'].split(' ')
+				record = DNS_zone_record_SRV(info_1[0],info_1[1],name,int(info_2[0]),int(info_2[1]),int(info_2[2]),info_2[3],ttl)
 				pass
 			case 'TXT':
 				if len(response['ResourceRecords']) == 1:
 					value = response['ResourceRecords'][0]['Value'].rstrip('"').lstrip('"')
+					record = DNS_zone_record_TXT(name, value, ttl)
 				else:
-					value = []
+					record	= []
 					for segment in response['ResourceRecords']:
-						cleaned_value = segment['Value'].rstrip('"').lstrip('"')
-						value.append(cleaned_value)
+						value = segment['Value'].rstrip('"').lstrip('"')
+						record.append(DNS_zone_record_TXT(name, value, ttl))
 					del segment
-				record = DNS_zone_record_TXT(name,value,ttl)
 				del value
 			case _:
 				logging.warning(f"unhandled record type: {response['Type']}")
 
-		aws_zone.append(record)
+		if isinstance(record,list):
+			for individual_rr in record: aws_zone.add(individual_rr)
+		else:
+			aws_zone.add(record)
 	return aws_zone
 
 

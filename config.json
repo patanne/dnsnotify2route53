@@ -7,6 +7,6 @@
   "domains_to_manage_from_aws" : false,
   "domains_to_manage" :
           [
-            "gethelpbox.com"
+            "gethelpbox.org"
           ]
 }
