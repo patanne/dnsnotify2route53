@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import argparse
 import datetime
 import sys
@@ -130,9 +132,9 @@ def queue_processor():
 		zone_list = [hosted_zone[1] for hosted_zone in zone_dict.items() if hosted_zone[0] in zones_received]
 		process_zones(zone_list)
 		if serial is None:
-			message = f"worker processed {zone} with serial '{serial}' at {datetime.datetime.now().strftime(globals.timestamp_format)} local time."
-		else:
 			message = f"worker processed {zone} by need of refresh at {datetime.datetime.now().strftime(globals.timestamp_format)} local time."
+		else:
+			message = f"worker processed {zone} with serial '{serial}' at {datetime.datetime.now().strftime(globals.timestamp_format)} local time."
 		print(message)
 		logging.info(message)
 		globals.wq.task_done()
@@ -145,7 +147,8 @@ def refresh_processor():
 		for zone in globals.zone_dict.keys():
 			next_check	= globals.zone_dict[zone]['next_check']
 			if epoch_now < next_check:
-				logging.debug(f"refresh interval for zone {zone} has not expired. skipping.")
+				expire_time = time.strftime(globals.timestamp_format, time.localtime(next_check))
+				logging.debug(f"refresh interval for zone {zone} does not expire until {expire_time}. skipping.")
 				continue
 			# this zone needs a refresh
 			logging.debug(f"refresh interval for zone {zone} has expired. putting zone name on queue.")
