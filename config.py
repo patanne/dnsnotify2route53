@@ -4,7 +4,11 @@ import os
 from collections import namedtuple
 
 def load_config():
-	config_file_path = os.path.join(os.path.dirname(__file__), "config.json")
+	# try to use a private config file, one that will not be overwritten by a git pull.
+	private_config_path = os.path.join(os.path.dirname(__file__),'config', "config.json")
+	public_config_path = os.path.join(os.path.dirname(__file__), "config.json")
+	config_file_path = private_config_path if os.path.exists(private_config_path) else public_config_path
+
 	with open(config_file_path) as json_data:
 		globals.config = json.load(json_data,object_hook=ConfigJsonDecode)
 		json_data.close()
