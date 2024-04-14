@@ -60,8 +60,6 @@ def get_dns_soa_refresh(zone):
 	resolver.nameservers = globals.config.notify_servers
 	raw_answer = resolver.query(zone.domain_name, 'SOA')
 	answer_dict = raw_answer.response.answer[0].items
-	answer = list(answer_dict)[0].expire
+	answer = list(answer_dict)[0].refresh
 
 	return answer
-
-	pass
