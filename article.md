@@ -86,28 +86,21 @@ systemctl restart dnsnotify2route53.service;systemctl status dnsnotify2route53.s
 
 ### Configuration
 
-The project uses a simple **config.json** fileto function. In this section is a descriptions of each setting.
+The project uses a simple **config.json** file to function. In this section is a descriptions of each setting.
 
-##### listen_ip
+| setting   | description                                                  |
+| --------- | ------------------------------------------------------------ |
+| listen_ip | The IP address the listener establishes itself on. The current code only supports a single IP at the moment, not a collection of IP's, if you are multi-homed. If you intend to run this on your primary DNS server, on a port other than 53, you can make set this to 127.0.0.1. Otherwise leave it at 0.0.0.0. |
+|listen_port|The UDP port to listen on for DNS NOTIFY messages.|
+|notify_servers|The list of servers from which notification is permitted. Any others are ignored.|
+|domains_to_manage|The list of domains we want this project to manage and synchronize.|
+|domains_to_manage_from_aws|If the list of domains is long we could just take the lead of Route53 and manage every domain we have.|
+|zone_refresh_wait_interval|This is the number of seconds the refresh thread sleeps before checking for refresh needs again.|
 
-The IP address the listener establishes itself on. The current code only supports a single IP at the moment, not a collection of IP's, if you are multi-homed. If you intend to run this on your primary DNS server, on a port other than 53, you can make set this to 127.0.0.1. Otherwise leave it at 0.0.0.0.
+### DNS Record Types Currently Supported
 
-##### listen_port
+Presently the following are supported: A, CNAME, MX, SOA, SRV, TXT
 
-The UDP port to listen on for DNS NOTIFY messages.
+This project intentionally discards NS records to preserve the ability of Route53 to properly function as a public-facing slave zone. Additionally this project ignores the mname and rname fields of the SOA record for the same reason as previously mentioned.
 
-##### notify_servers
 
-The list of servers from which notification is permitted. Any others are ignored.
-
-##### domains_to_manage
-
-The list of domains we want this project to manage and synchronize.
-
-##### domains_to_manage_from_aws
-
-If the list of domains is long we could just take the lead of Route53 and manage every domain we have.
-
-##### zone_refresh_wait_interval
-
-This is the number of seconds the refresh thread sleeps before checking for refresh needs again.
