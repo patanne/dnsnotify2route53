@@ -8,5 +8,6 @@
   "domains_to_manage" :
           [
             "gethelpbox.org"
-          ]
+          ],
+  "zone_refresh_wait_interval": 900
 }

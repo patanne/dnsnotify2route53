@@ -3,7 +3,7 @@ import logging
 from dns import query
 from dns import zone as dnszone
 from dns import rdatatype as resource_type
-
+from dns.resolver import Resolver
 from dns_classes import *
 
 def get_dns_zone(server,zone_name):
@@ -54,3 +54,14 @@ def get_dns_zone(server,zone_name):
 		else:
 			dns_zone.add(record)
 	return dns_zone
+
+def get_dns_soa_refresh(zone):
+	resolver = Resolver()
+	resolver.nameservers = globals.config.notify_servers
+	raw_answer = resolver.query(zone.domain_name, 'SOA')
+	answer_dict = raw_answer.response.answer[0].items
+	answer = list(answer_dict)[0].expire
+
+	return answer
+
+	pass
