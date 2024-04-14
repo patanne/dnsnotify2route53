@@ -10,6 +10,6 @@ mkdir -p /usr/local/lib/systemd/system
 
 cp /opt/dnsnotify2route53/assets/dnsnotify2route53.service /usr/local/lib/systemd/system
 systemctl daemon-reload
-systemctl enable dnsnotify2route53.service
-systemctl start  dnsnotify2route53.service
-systemctl status dnsnotify2route53.service
+systemctl enable  dnsnotify2route53.service
+systemctl restart dnsnotify2route53.service
+systemctl status  dnsnotify2route53.service
