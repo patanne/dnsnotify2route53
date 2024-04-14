@@ -1,5 +1,5 @@
 [Unit]
-Description=This unit will start after internet connection
+Description=Listen for DNS Notify. AXFR, translate, and upload zone to Route53
 After=network.target
 Wants=network-online.target
 
