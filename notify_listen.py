@@ -1,6 +1,6 @@
 import datetime
 import logging
-from config import *
+import globals
 
 import socket
 
@@ -12,10 +12,10 @@ import dns.name
 
 from typing import cast
 
-port = 53
 
 def listen_for_notify():
     address = globals.config.listen_ip
+    port    = globals.config.listen_port
 
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.bind((address, port))
