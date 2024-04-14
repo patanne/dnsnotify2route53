@@ -9,5 +9,5 @@
           [
             "gethelpbox.org"
           ],
-  "zone_refresh_wait_interval": 900
+  "zone_refresh_wait_interval": 300
 }
