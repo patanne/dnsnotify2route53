@@ -42,10 +42,11 @@ def get_aws_zone(zone_object):
 		raise Exception('truncated response from AWS. do we have more than 300 records in the zone?')
 
 	for response in rr_response['ResourceRecordSets']:
-		name1	= response['Name'].rstrip('.')
-		name2	= name1.replace(zone_object.domain_name,"")
-		name3	= name2.rstrip('.')
-		name	= "@" if name3 == "" else name3
+		name = response['Name']
+		if name.endswith(zone_object.domain_name + "."):	name = name.replace(zone_object.domain_name + ".","")
+		if name.endswith(zone_object.domain_name):			name = name.replace(zone_object.domain_name,"")
+		if name.endswith('.'): name = name.rstrip('.')
+		if name == "": name	= "@"
 		ttl		= response['TTL']
 		record	= None
 		match response['Type']:

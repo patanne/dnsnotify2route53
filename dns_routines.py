@@ -9,6 +9,8 @@ from dns_classes import *
 def get_dns_zone(server,zone_name):
 	dns_zone = DNS_zone(zone_name)
 	axfr = dnszone.from_xfr(query.xfr(server, zone_name))
+	for rsdata in axfr.iterate_rdatasets():
+		pass
 	for rdata in axfr.iterate_rdatas():
 		rrn	= rdata[0]
 		rrr = rdata[2]
@@ -17,19 +19,23 @@ def get_dns_zone(server,zone_name):
 		record	= None
 		match rrr.rdtype:
 			case resource_type.SOA:
+				# while we do not want mname or rname to be pushed to AWS, we need them for comparison, so include it here.
+				# we replace the information with what came from AWS as a post-comparison step in routine 'patch_SOA'.
 				record = DNS_zone_record_SOA(rrr.mname.to_text(),rrr.rname.to_text(),zone_name,rrr.serial,rrr.refresh,rrr.retry,rrr.expire,rrr.minimum)
-				# remove the elements that we want to leave with AWS
-				# record = DNS_zone_record_SOA("","", zone_name, rrr.serial, rrr.refresh, rrr.retry, rrr.expire, rrr.minimum)
 			case resource_type.NS:
 				# we do not want to handle the name servers for the root domain. that will be managed by route53.
 				if name == "@": continue
-				record = DNS_zone_record_NS(name,rrr.target.to_text(),ttl)
+				# NS records must be fully qualified.
+				resource = rrr.target.to_text() if rrr.target.is_absolute() else rrr.target.derelativize(axfr.origin).to_text(False)
+				record = DNS_zone_record_NS(name,server,ttl)
 			case resource_type.A:
 				record = DNS_zone_record_A(name,rrr.address,ttl)
 			case resource_type.CNAME:
-				record = DNS_zone_record_CNAME(name,rrr.target.to_text())
+				resource = rrr.target.to_text() if rrr.target.is_absolute() else rrr.target.derelativize(axfr.origin).to_text(False)
+				record = DNS_zone_record_CNAME(name,resource)
 			case resource_type.MX:
-				record = DNS_zone_record_MX(name,rrr.preference,rrr.exchange.to_text(),ttl)
+				resource = rrr.exchange.to_text() if rrr.exchange.is_absolute() else rrr.exchange.derelativize(axfr.origin).to_text(False)
+				record = DNS_zone_record_MX(name,rrr.preference,resource,ttl)
 			case resource_type.SRV:
 				service	= name.split('.')[0]
 				protocol= name.split('.')[1]

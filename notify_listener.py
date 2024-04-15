@@ -36,7 +36,7 @@ def listen_for_notify():
             pass
 
         server_ip = address[0]
-        domain_name  = soa.name.to_text().rstrip('.')
+        domain_name  = soa.name.to_text(True)
         serial = soa[0].serial
         message = f"notify received at {datetime.datetime.now().strftime(globals.timestamp_format)} local time from server {server_ip} for domain {domain_name} with serial number {serial}."
         print(message)

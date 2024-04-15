@@ -58,7 +58,7 @@ class DNS_zone:
 		if resource.group_key in self._resource_dict:
 			container = self._resource_dict[resource.group_key]
 		else:
-			container = DNS_zone_record_container()
+			container = DNS_zone_record_set()
 			self._resource_dict[resource.group_key] = container
 
 		resource._parent_domain = self._zone_name
@@ -104,7 +104,7 @@ class DNS_zone:
 			for record in container._resource_records.values():
 				if record._ttl is None: record._ttl = self._ttl
 
-class DNS_zone_record_container:
+class DNS_zone_record_set:
 	def __init__(self):
 		self._name				= None
 		self._record_class		= None

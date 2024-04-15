@@ -9,7 +9,7 @@ import time
 from aws_routines import *
 from dns_routines import *
 from config import *
-from notify_listen import listen_for_notify
+from notify_listener import listen_for_notify
 
 import globals
 globals.init()
