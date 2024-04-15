@@ -49,7 +49,10 @@ def get_aws_zone(zone_object):
 		ttl		= response['TTL']
 		record	= None
 		match response['Type']:
-			case 'NS': continue
+			case 'NS':
+				# we do not want to handle the name servers for the root domain. that will be managed by route53.
+				if name == "@": continue
+				record = DNS_zone_record_NS(name,response['ResourceRecords'][0]['Value'],ttl)
 			case 'SOA':
 				rrl = response['ResourceRecords'][0]['Value'].split(' ')
 				record = DNS_zone_record_SOA(rrl[0],rrl[1],zone_object.domain_name,int(rrl[2]),int(rrl[3]),int(rrl[4]),int(rrl[5]),int(rrl[6]))
@@ -136,20 +139,4 @@ class aws_changes:
 		chg['ResourceRecordSet']=chg_rs
 
 		self._change_list.append(chg)
-
-	def patch_multi(self):
-		seen = dict()
-		index = 0
-		while index < len(self._change_list):
-			current = self._change_list[index]
-			kind = f"{current['Action']}::{current['ResourceRecordSet']['Type']}::{current['ResourceRecordSet']['Name']}"
-			# we have not seen this record already
-			if kind not in seen:
-				seen[kind] = index
-				index += 1
-				continue
-			previous = seen[kind]
-			self._change_list[previous]['ResourceRecordSet']['ResourceRecords'].append(current['ResourceRecordSet']['ResourceRecords'][0])
-			del self._change_list[index]
-			pass
 

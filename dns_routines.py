@@ -21,8 +21,9 @@ def get_dns_zone(server,zone_name):
 				# remove the elements that we want to leave with AWS
 				# record = DNS_zone_record_SOA("","", zone_name, rrr.serial, rrr.refresh, rrr.retry, rrr.expire, rrr.minimum)
 			case resource_type.NS:
-				# we do not want to pass along the name servers. that will be managed by route53
-				continue
+				# we do not want to handle the name servers for the root domain. that will be managed by route53.
+				if name == "@": continue
+				record = DNS_zone_record_NS(name,rrr.target.to_text(),ttl)
 			case resource_type.A:
 				record = DNS_zone_record_A(name,rrr.address,ttl)
 			case resource_type.CNAME:
@@ -32,7 +33,7 @@ def get_dns_zone(server,zone_name):
 			case resource_type.SRV:
 				service	= name.split('.')[0]
 				protocol= name.split('.')[1]
-				target	= rrr.target.labels[0].decode(globals.encoding)
+				target	= rrr.target.to_text()
 				record = DNS_zone_record_SRV(service,protocol,name,rrr.priority,rrr.weight,rrr.port,target,ttl)
 			case resource_type.TXT:
 				if len(rrr.strings) == 1:

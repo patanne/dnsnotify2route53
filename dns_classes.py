@@ -9,6 +9,7 @@ class DNS_RECORD_TYPE(IntEnum):
 	A		= 0
 	CNAME	= auto()
 	MX		= auto()
+	NS		= auto()
 	SOA		= auto()
 	SRV		= auto()
 	TXT		= auto()
@@ -18,6 +19,7 @@ DNS_RECORD_TYPE_STRING = \
 	"A",
 	"CNAME",
 	"MX",
+	"NS",
 	"SOA",
 	"SRV",
 	"TXT"
@@ -235,6 +237,9 @@ class DNS_zone_record_MX(DNS_zone_record):
 	def for_AWS(self):
 		value = f"{self._preference} {self._value}"
 		return value
+
+class DNS_zone_record_NS(DNS_zone_record):
+	def __init__(self, name, server, ttl=None):	super().__init__(name,DNS_RECORD_TYPE.NS,server,ttl)
 
 class DNS_zone_record_SOA(DNS_zone_record):
 	def __init__(self, mname, rname, name, serial, refresh, retry, expire, ttl=None):
