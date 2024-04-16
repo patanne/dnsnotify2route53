@@ -1,4 +1,5 @@
 import datetime
+import queue
 import time
 
 from aws_routines import *
@@ -72,9 +73,20 @@ def process_zones(zone_list: list[AWS_hosted_zone]):
 
 
 def queue_processor():
+	queue_partial_block = False
+	queue_partial_block_timeout = 60	# seconds
 	keep_running = True
+
 	while keep_running:
-		zone,serial = globals.wq.get()
+		if queue_partial_block:
+			try:
+				zone,serial = globals.wq.get(True,queue_partial_block_timeout)
+			except queue.Empty:
+				continue
+		else:
+			time.sleep(1)
+			zone,serial = globals.wq.get()
+
 		zones_received = [zone]
 		zone_dict = get_aws_all_hosted_zones()
 		zone_list = [hosted_zone[1] for hosted_zone in zone_dict.items() if hosted_zone[0] in zones_received]
@@ -86,4 +98,3 @@ def queue_processor():
 		print(message)
 		logging.info(message)
 		globals.wq.task_done()
-		time.sleep(1)
