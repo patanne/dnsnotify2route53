@@ -64,7 +64,7 @@ There is no documentation, no exception handling, no tests. Like I said, I have 
 
 This project was deployed on Debian 12. Python 3.11 is the standard for that distro. So that is what this project was written with.
 
-I hate Docker. I love LXC. Don't expect a container any time soon.
+Docker is not my jam. I love LXC. Don't expect a container any time soon.
 
 ### Debugging
 
@@ -89,6 +89,14 @@ systemctl restart dnsnotify2route53.service;systemctl status dnsnotify2route53.s
 ### Configuration
 
 The project uses a simple **config.json** file to function. In this section is a descriptions of each setting. The install script creates a subfolder called, config. it copies the config file to this folder. At startup the project checks the subfolder for the config file first.All this is done because .gitignore ignores this folder. Otherwise any subsequent git pull would override all your settings.
+
+you can lint the config file in the following way:
+
+```shell
+python3 -m json.tool /opt/dnsnotify2route53/config/config.json
+```
+
+
 
 | setting   | description                                                  |
 | --------- | ------------------------------------------------------------ |

@@ -45,6 +45,14 @@ assets/install_all.sh
 
 The project uses a simple **config.json** file to function. In this section is a descriptions of each setting. The install script creates a subfolder called, config. it copies the config file to this folder. At startup the project checks the subfolder for the config file first.All this is done because .gitignore ignores this folder. Otherwise any subsequent git pull would override all your settings.
 
+you can lint the config file in the following way:
+
+```shell
+python3 -m json.tool /opt/dnsnotify2route53/config/config.json
+```
+
+
+
 | setting                    | description                                                  |
 | -------------------------- | ------------------------------------------------------------ |
 | listen_ip                  | The IP address the listener establishes itself on. The current code only supports a single IP at the moment, not a collection of IP's, if you are multi-homed. If you intend to run this on your primary DNS server, on a port other than 53, you can make set this to 127.0.0.1. Otherwise leave it at 0.0.0.0. |
