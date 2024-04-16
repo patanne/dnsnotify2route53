@@ -1,5 +1,7 @@
 # DNS Notify to Route53
 
+This article presents a project that will allow Route53 domains to serve your public-facing needs while acting, essentially, as a slave domain server to your existing infrastructure. Using this project Route53 can be synchronized to changes signaled in DNS NOTIFY ([RFC 1996](https://datatracker.ietf.org/doc/html/rfc1996)) messages.
+
 ### The Objective
 
 This project attempts one thing: to be the gateway between normal DNS and Route53. By normal, I mean the DNS that adheres to standards, specifically domain transfers and notify.
@@ -18,7 +20,7 @@ I use the excellent [Technitium project](https://technitium.com/) to manage all 
 
 ### How it Works
 
-This project performs one core function. It compares the contents of one or more domains you manage to its slave counterpart on Route53, then performs a one-way synchronization, a push. For simplicity it does this by first generating three lists: add, change, delete. It then applies them accordingly. It uses the standard AXFR to get primary domain information then uses boto3 to pull from and push to AWS.
+This project performs one core function. It compares the contents of one or more domains you manage to its slave counterpart on Route53, then performs a one-way synchronization, a push. For simplicity it does this by first generating three lists: add_resource_set, change, delete. It then applies them accordingly. It uses the standard AXFR to get primary domain information then uses boto3 to pull from and push to AWS.
 
 At first start the project needs to bring everything to synchronization and so performs the above steps. If you do not run this as a daemon, that is all it does and exits. You could simply change to the project directory, run ./start.py and do nothing more. If you never change things, why devote a background process? Run it only when needed.
 
@@ -38,7 +40,7 @@ permission to push. The IAM credentials need the permission to change existing d
 
 pre-established AWS CLI with IAM credentials. This project uses boto3 and assumes the connection will "just happen".  Setting up the credentials is not handled in the code. The lines below should get you there.
 
-```script
+```shell
 apt install -y awscli
 aws configure
 ```
@@ -47,7 +49,7 @@ aws configure
 
 assuming your rerequisites exist, this is all you need.
 
-```script
+```shell
 git clone
 assets/install_all.sh
 ```
@@ -56,7 +58,7 @@ assets/install_all.sh
 
 Personally, I have an endless list of things to do. This is a project of need, not love. What does that mean? When it suits my needs I probably won't make many more changes to it. This effort took two days. I should not complain.
 
-This project is sloppy. I had an idea of what I wanted to do. That got wrecked by Route53's concept of consolidating multiple dns records in to a ResourceRecords collection. It's not that they are wrong, it's that I've spent over 20 years working with BIND. Every entry is its own record. Never mind that there is no concept of record key. The DNS_record_container class I created is a shim put in post-design to accomodate Route53's way of doing things. If you look at the method aws_changes.patch_multi, it was my last effort at avoiding the need to use the shim. It didn't work. If I rewrote this with their design in mind the code would work the same way but look a lot nicer.
+This project is sloppy. I had an idea of what I wanted to do. That got wrecked by Route53's concept of consolidating multiple dns records in to a ResourceRecords collection, or a ResourceRecordSet. It's not that they are wrong. It's part of [RFC 2181](https://datatracker.ietf.org/doc/html/rfc2181). It's just that I've spent over 20 years working with BIND. Every entry is its own record. It thinks records, not record sets. The DNS_zone_resource_set class I created is a shim put in post-design to accomodate record sets. If I rewrote this with the record set design in mind (using dnspyton's axfr.iterate_rdatasets rather than axfr.iterate_rdatas) the code would work the same way but look a lot nicer.
 
 There is no documentation, no exception handling, no tests. Like I said, I have no time. Maybe I will change that.
 
@@ -86,7 +88,7 @@ systemctl restart dnsnotify2route53.service;systemctl status dnsnotify2route53.s
 
 ### Configuration
 
-The project uses a simple **config.json** file to function. In this section is a descriptions of each setting.
+The project uses a simple **config.json** file to function. In this section is a descriptions of each setting. The install script creates a subfolder called, config. it copies the config file to this folder. At startup the project checks the subfolder for the config file first.All this is done because .gitignore ignores this folder. Otherwise any subsequent git pull would override all your settings.
 
 | setting   | description                                                  |
 | --------- | ------------------------------------------------------------ |
@@ -99,8 +101,7 @@ The project uses a simple **config.json** file to function. In this section is a
 
 ### DNS Record Types Currently Supported
 
-Presently the following are supported: A, CNAME, MX, SOA, SRV, TXT
+Presently the following are supported: A, CNAME, MX, NS¹, SOA, SRV, TXT
 
-This project intentionally discards NS records to preserve the ability of Route53 to properly function as a public-facing slave zone. Additionally this project ignores the mname and rname fields of the SOA record for the same reason as previously mentioned.
-
+¹This project intentionally discards NS records of the root domain (but not subdomains) to preserve the ability of Route53 to properly function as a public-facing slave zone. Additionally this project ignores the mname and rname fields of the SOA record for the same reason.
 

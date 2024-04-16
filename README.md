@@ -43,7 +43,7 @@ assets/install_all.sh
 
 ## Configuration
 
-The project uses a simple **config.json** file to function. In this section is a descriptions of each setting.
+The project uses a simple **config.json** file to function. In this section is a descriptions of each setting. The install script creates a subfolder called, config. it copies the config file to this folder. At startup the project checks the subfolder for the config file first.All this is done because .gitignore ignores this folder. Otherwise any subsequent git pull would override all your settings.
 
 | setting                    | description                                                  |
 | -------------------------- | ------------------------------------------------------------ |
@@ -56,6 +56,6 @@ The project uses a simple **config.json** file to function. In this section is a
 
 ## DNS Record Types Currently Supported
 
-Presently the following are supported: A, CNAME, MX, SOA, SRV, TXT
+Presently the following are supported: A, CNAME, MX, NS¹, SOA, SRV, TXT
 
-This project intentionally discards NS records to preserve the ability of Route53 to properly function as a public-facing slave zone. Additionally this project ignores the mname and rname fields of the SOA record for the same reason as previously mentioned.
+¹This project intentionally discards NS records of the root domain (but not subdomains) to preserve the ability of Route53 to properly function as a public-facing slave zone. Additionally this project ignores the mname and rname fields of the SOA record for the same reason.
