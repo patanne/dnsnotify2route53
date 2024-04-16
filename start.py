@@ -18,6 +18,7 @@ globals.init()
 def process_args():
 	parser = argparse.ArgumentParser()
 	parser.add_argument("--daemon", action="store_true", help="configure running as a daemon. enter listening loop for notify.")
+	parser.add_argument("--no-push", action="store_true", help="for debugging. if set will not push changes to Route53.")
 	parser.add_argument("-d","--domains", help="comma-separated list of domains to manage, overriding config file.")
 	parser.add_argument("-s","--notify-servers", help="comma-separated list of notify servers to override config file.")
 	globals.args = parser.parse_args()

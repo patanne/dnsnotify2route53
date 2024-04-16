@@ -106,13 +106,16 @@ class aws_changes:
 		self.zone_id = zone_id
 		self._change_list = []
 
-	def get_aws_dict(self):
+	def get_aws_dict(self)-> dict:
 		full_change = dict()
 		full_change['Changes'] = self._change_list
-		if globals.DEBUG:
-			j = json.dumps(full_change, indent=2)
-			print(j)
 		return full_change
+
+	def get_aws_json(self):
+		full_change = dict()
+		full_change['Changes'] = self._change_list
+		j = json.dumps(full_change, indent=2)
+		return j
 
 	def send_aws_dict(self,full_change:dict):
 		client.change_resource_record_sets(HostedZoneId=self.zone_id,ChangeBatch=full_change)

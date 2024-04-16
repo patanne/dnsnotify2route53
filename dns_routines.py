@@ -35,7 +35,7 @@ def get_dns_zone(server,zone_name):
 				record = DNS_zone_record_A(name,rrr.address,ttl)
 			case resource_type.CNAME:
 				resource = rrr.target.to_text() if rrr.target.is_absolute() else rrr.target.derelativize(axfr.origin).to_text(False)
-				record = DNS_zone_record_CNAME(name,resource)
+				record = DNS_zone_record_CNAME(name,resource,ttl)
 			case resource_type.MX:
 				resource = rrr.exchange.to_text() if rrr.exchange.is_absolute() else rrr.exchange.derelativize(axfr.origin).to_text(False)
 				record = DNS_zone_record_MX(name,rrr.preference,resource,ttl)

@@ -1,3 +1,5 @@
+import logging
+
 from dns_class_common import *
 from dns_class_zone import DNS_zone
 from dns_class_resource import DNS_zone_record
@@ -91,11 +93,17 @@ class DNS_zone_resource_set:
 			return label, record_type_as_string, value, ttl
 		else:
 			value_list = []
-			min_ttl = self.parent_zone.ttl
+			ttl = None
+			first_record=True
 			for rr in self.resource_records.values():
-				# this is where we fix missing ttl, setting it = domain ttl
-				ttl = rr.ttl if rr.ttl is not None else self.parent_zone.ttl
-				if ttl < min_ttl: min_ttl = ttl
 				value_list.append(rr.for_AWS())
-			return label, record_type_as_string, value_list, min_ttl
+				# this is where we fix missing ttl, setting it = domain ttl.
+				# this has a slight flaw that if each resource record has a different value, changes will alwayys happen.
+				if not first_record and rr.ttl != ttl:
+					message = f"for domain '{self.parent_zone.zone_name}', record type '{record_type_as_string}', label '{label}' there are multiple records with different TTL. fix at source."
+					logging.error(message)
+				if rr.ttl is not None: ttl = rr.ttl # set ttl if it exists.
+
+			if ttl is None: ttl = self.parent_zone.ttl # set ttl to parent if not exists.
+			return label, record_type_as_string, value_list, ttl
 

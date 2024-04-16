@@ -54,11 +54,19 @@ def process_zones(zone_list: list[AWS_hosted_zone]):
 			message = f"changes were found at {datetime.datetime.now().strftime(globals.timestamp_format)} for zone '{some_zone.domain_name}'. pushing to Route53."
 			logging.info(message)
 
-			a_dict = changes.get_aws_dict()
-			changes.send_aws_dict(a_dict)
+			if globals.DEBUG:
+				j = changes.get_aws_json()
+				print(j)
+
+			if not globals.args.no_push:
+				a_dict = changes.get_aws_dict()
+				changes.send_aws_dict(a_dict)
+			else:
+				print("--no-push has been supplied. not sending to AWS.")
 		else:
 			message = f"finished synchronization cycle at {datetime.datetime.now().strftime(globals.timestamp_format)} for zone '{some_zone.domain_name}'. no changes found."
 			logging.info(message)
+
 		update_zone_refresh(some_zone.domain_name)
 
 
