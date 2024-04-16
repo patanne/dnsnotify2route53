@@ -2,6 +2,7 @@
 
 import argparse
 import datetime
+import logging
 import sys
 import threading
 
@@ -35,6 +36,10 @@ def set_logging():
 			# logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
 		else:
 			logging.basicConfig(filename='/var/log/dnsnotify2route53.log',level=log_level)
+
+	# sometimes we want to debug but boto buries us. this lets us shut off the noise.
+	if globals.DEBUG and globals.config.mute_botocore_debug:
+		logging.getLogger("botocore").setLevel(logging.INFO)
 
 
 def first_start():
