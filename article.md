@@ -73,7 +73,7 @@ If you want debug-level logging from this project, execute the following from th
 ```shell
 sed -i 's/^Environment=.*$/Environment="DEBUG=1"/' assets/dnsnotify2route53.service
 
-./assets/install.sh
+./assets/install_all.sh
 systemctl restart dnsnotify2route53.service;systemctl status dnsnotify2route53.service
 ```
 
@@ -82,7 +82,7 @@ To turn debugging off execute this:
 ```shell
 sed -i 's/^Environment=.*$/Environment=/' assets/dnsnotify2route53.service
 
-./assets/install.sh
+./assets/install_all.sh
 systemctl restart dnsnotify2route53.service;systemctl status dnsnotify2route53.service
 ```
 
