@@ -27,7 +27,7 @@ def get_zone_changes(some_zone):
 
 	return add_list, chg_list, del_list
 
-def process_zones(zone_list):
+def process_zones(zone_list: list[AWS_hosted_zone]):
 	# get our three lists. inefficient? perhaps. but it works.
 	for some_zone in zone_list:
 		add_list, chg_list, del_list = get_zone_changes(some_zone)
@@ -51,13 +51,13 @@ def process_zones(zone_list):
 			changes.change__simple_value("DELETE", resource_type_string, label, data, ttl)
 
 		if there_are_changes:
-			message = f"changes were found at {datetime.datetime.now().strftime(globals.timestamp_format)}. pushing to Route53."
+			message = f"changes were found at {datetime.datetime.now().strftime(globals.timestamp_format)} for zone '{some_zone.domain_name}'. pushing to Route53."
 			logging.info(message)
 
 			a_dict = changes.get_aws_dict()
 			changes.send_aws_dict(a_dict)
 		else:
-			message = f"finished synchronization cycle at {datetime.datetime.now().strftime(globals.timestamp_format)}. no changes found."
+			message = f"finished synchronization cycle at {datetime.datetime.now().strftime(globals.timestamp_format)} for zone '{some_zone.domain_name}'. no changes found."
 			logging.info(message)
 		update_zone_refresh(some_zone.domain_name)
 

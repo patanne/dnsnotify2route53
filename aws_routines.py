@@ -27,7 +27,7 @@ class AWS_hosted_zone:
 
 
 
-def get_aws_all_hosted_zones() -> dict:
+def get_aws_all_hosted_zones() -> dict[str,AWS_hosted_zone]:
 	response = client.list_hosted_zones()
 	zone_dict = dict()
 	for zone in response['HostedZones']:
