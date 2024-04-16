@@ -3,6 +3,13 @@
 
 # to be run from the root of the project dir, not the assets dir.
 
+if [ ! -d  ./config ]; then
+  mkdir -p ./config
+fi
+
+if [ ! -f ./config/config.json ]; then
+    cp config.json ./config/
+fi
 
 pip3 install -r requirements.txt --break-system-packages
 
