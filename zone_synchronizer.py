@@ -1,4 +1,5 @@
 import datetime
+import time
 
 from aws_routines import *
 from dns_routines import *
@@ -85,4 +86,4 @@ def queue_processor():
 		print(message)
 		logging.info(message)
 		globals.wq.task_done()
-		# thread.sleep(2)
+		time.sleep(1)
