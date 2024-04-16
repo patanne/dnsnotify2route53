@@ -2,7 +2,7 @@ import boto3
 import json
 import logging
 
-from dns_classes import *
+# dns_class_* imports at bottom of module to prevent cirtular import
 
 client = boto3.client('route53')
 
@@ -35,7 +35,7 @@ def get_aws_all_hosted_zones() -> dict:
 		zone_dict[zone_object.domain_name] = zone_object
 	return zone_dict
 
-def get_aws_zone(zone_object):
+def get_aws_zone(zone_object)-> 'DNS_zone':
 	aws_zone = DNS_zone(zone_object.domain_name)
 	rr_response = client.list_resource_record_sets(HostedZoneId=zone_object.id)
 	if rr_response['IsTruncated']:
@@ -89,9 +89,9 @@ def get_aws_zone(zone_object):
 				logging.warning(f"unhandled record type: {response['Type']}")
 
 		if isinstance(record,list):
-			for individual_rr in record: aws_zone.add(individual_rr)
+			for individual_rr in record: aws_zone.add_resource(individual_rr)
 		else:
-			aws_zone.add(record)
+			aws_zone.add_resource(record)
 	return aws_zone
 
 
@@ -106,38 +106,54 @@ class aws_changes:
 		self.zone_id = zone_id
 		self._change_list = []
 
-	def to_AWS(self):
+	def get_aws_dict(self):
 		full_change = dict()
 		full_change['Changes'] = self._change_list
 		if globals.DEBUG:
 			j = json.dumps(full_change, indent=2)
 			print(j)
+		return full_change
 
+	def send_aws_dict(self,full_change:dict):
 		client.change_resource_record_sets(HostedZoneId=self.zone_id,ChangeBatch=full_change)
 
-	def change__simple_value(self,change_type,type,name,ttl,value):
+	def change__simple_value(self, change_type, resource_type, label, ttl, data):
+		# set action
 		chg = dict()
 		chg['Action'] = change_type
+
+		# set resource set
 		chg_rs = dict()
-		chg_rs['Type'] = type
+		chg_rs['Type'] = resource_type
 		if ttl is not None: chg_rs['TTL'] = ttl
-		chg_rs['Name'] = name
+		chg_rs['Name'] = label
+
+		# set resource record(s)
 		chg_rr = []
-		if isinstance(value,list):
-			for sub in value:
-				if type == 'TXT':
+		if isinstance(data, list):
+			for sub in data:
+				# special handling of quotes in TXT record
+				if resource_type == 'TXT':
 					tmp = f'"{sub}"'
 					chg_rr.append({'Value': tmp})
 				else:
 					chg_rr.append({'Value': sub})
 		else:
-			if type == 'TXT':
-				tmp = f'"{value}"'
+			# special handling of quotes in TXT record
+			if resource_type == 'TXT':
+				tmp = f'"{data}"'
 				chg_rr.append({'Value':tmp})
 			else:
-				chg_rr.append({'Value':value})
+				chg_rr.append({'Value':data})
+
+		# connect it all
 		chg_rs['ResourceRecords']=chg_rr
 		chg['ResourceRecordSet']=chg_rs
 
 		self._change_list.append(chg)
 
+
+# dns_class_* imports
+from dns_class_common import *
+from dns_class_zone import DNS_zone
+from dns_class_resource import *

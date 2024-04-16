@@ -4,13 +4,15 @@ from dns import query
 from dns import zone as dnszone
 from dns import rdatatype as resource_type
 from dns.resolver import Resolver
-from dns_classes import *
+
+# dns_class_* imports at bottom of module to prevent cirtular import
 
 def get_dns_zone(server,zone_name):
-	dns_zone = DNS_zone(zone_name)
 	axfr = dnszone.from_xfr(query.xfr(server, zone_name))
-	for rsdata in axfr.iterate_rdatasets():
-		pass
+	soa = axfr.get_soa()
+	# for rsdata in axfr.iterate_rdatasets():
+	# 	pass
+	dns_zone = DNS_zone(zone_name,soa.minimum)
 	for rdata in axfr.iterate_rdatas():
 		rrn	= rdata[0]
 		rrr = rdata[2]
@@ -22,12 +24,13 @@ def get_dns_zone(server,zone_name):
 				# while we do not want mname or rname to be pushed to AWS, we need them for comparison, so include it here.
 				# we replace the information with what came from AWS as a post-comparison step in routine 'patch_SOA'.
 				record = DNS_zone_record_SOA(rrr.mname.to_text(),rrr.rname.to_text(),zone_name,rrr.serial,rrr.refresh,rrr.retry,rrr.expire,rrr.minimum)
+				# record = DNS_zone_record_SOA(rrr.mname.to_text(),rrr.rname.to_text(),"",rrr.serial,rrr.refresh,rrr.retry,rrr.expire,rrr.minimum)
 			case resource_type.NS:
 				# we do not want to handle the name servers for the root domain. that will be managed by route53.
 				if name == "@": continue
 				# NS records must be fully qualified.
 				resource = rrr.target.to_text() if rrr.target.is_absolute() else rrr.target.derelativize(axfr.origin).to_text(False)
-				record = DNS_zone_record_NS(name,server,ttl)
+				record = DNS_zone_record_NS(name,resource,ttl)
 			case resource_type.A:
 				record = DNS_zone_record_A(name,rrr.address,ttl)
 			case resource_type.CNAME:
@@ -57,9 +60,9 @@ def get_dns_zone(server,zone_name):
 				continue
 
 		if isinstance(record,list):
-			for individual_rr in record: dns_zone.add(individual_rr)
+			for individual_rr in record: dns_zone.add_resource(individual_rr)
 		else:
-			dns_zone.add(record)
+			dns_zone.add_resource(record)
 	return dns_zone
 
 def get_dns_soa_refresh(zone):
@@ -70,3 +73,9 @@ def get_dns_soa_refresh(zone):
 	answer = list(answer_dict)[0].refresh
 
 	return answer
+
+
+# dns_class_* imports
+from dns_class_common import *
+from dns_class_zone import DNS_zone
+from dns_class_resource import *
