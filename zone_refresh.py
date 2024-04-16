@@ -17,6 +17,7 @@ def record_zone_refresh(zone_list):
 		globals.zone_dict[some_zone.domain_name]['epoch_now']	= epoch_now
 		globals.zone_dict[some_zone.domain_name]['next_check']	= next_check
 
+
 def update_zone_refresh(zone_name):
 	refresh = globals.zone_dict[zone_name]['refresh']
 	epoch_now = int(time.time())
@@ -25,6 +26,10 @@ def update_zone_refresh(zone_name):
 	globals.zone_dict[zone_name]['next_check']	= next_check
 
 def refresh_processor():
+
+	message = "starting the refresh timer"
+	logging.info(message)
+
 	while True:
 		globals.refresh_wait_event.wait(timeout=globals.config.zone_refresh_wait_interval)
 		epoch_now = int(time.time())

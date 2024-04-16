@@ -4,7 +4,6 @@ import argparse
 import datetime
 import sys
 import threading
-import time
 
 from aws_routines import *
 from dns_routines import *
@@ -65,9 +64,18 @@ if __name__ == "__main__":
 
 
 	if globals.args.daemon:
+
+		message = "running in daemon mode."
+		logging.info(message)
+
 		notify_listener = threading.Thread(target=listen_for_notify)
 		queue_worker 	= threading.Thread(target=queue_processor)
 		refresh_worker	= threading.Thread(target=refresh_processor)
+
 		queue_worker.start()
 		notify_listener.start()
 		refresh_worker.start()
+
+	else:
+		message = "we ran one-off. execution finished."
+		logging.info(message)
