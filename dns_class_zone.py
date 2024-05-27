@@ -75,6 +75,24 @@ class DNS_zone:
 		rr._rname = record._rname
 		self._ttl = rr._ttl
 
+	def patch_TXT(self):
+		record_value = ""
+
+		for container in self._iterable_dict:
+			if container.type == DNS_RECORD_TYPE.TXT:
+				if len(container.resource_records) > 1 and "_domainkey" in container._label:
+					dict_first_entry = list(container.resource_records.keys())[0]
+					resource_key = container._label
+					ttl = container.resource_records[dict_first_entry].ttl
+					records = container.resource_records
+					for entry_key in records:
+						record_value += f'"{container.resource_records[entry_key].data}" '
+					record_value = record_value.rstrip(' ').rstrip('"').lstrip('"') # we do this to match what we do to the record from amazon
+					new_record = DNS_zone_record_TXT(resource_key, record_value, ttl)
+					new_dict = {new_record.unique_key:new_record}
+					container._resource_records = new_dict
+					pass
+
 	def patch_TTL(self):
 		# for record in self._iterable_dict:
 		# 	if record._record_type == DNS_RECORD_TYPE.SOA: self._ttl = record._ttl
@@ -87,5 +105,5 @@ class DNS_zone:
 
 # dns_class_* imports
 from dns_class_common import *
-from dns_class_resource import DNS_zone_record
+from dns_class_resource import DNS_zone_record,DNS_zone_record_TXT
 from dns_class_resource_set import DNS_zone_resource_set

@@ -14,6 +14,7 @@ def get_zone_changes(some_zone):
 	aws_zone = get_aws_zone(some_zone)
 	internal_zone = get_dns_zone(globals.config.notify_servers[0],some_zone.domain_name)
 	internal_zone.patch_SOA(aws_zone)
+	internal_zone.patch_TXT()
 	# internal_zone.patch_TTL()
 
 	for internal_record in internal_zone:

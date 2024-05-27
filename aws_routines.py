@@ -135,18 +135,25 @@ class aws_changes:
 		chg_rr = []
 		if isinstance(data, list):
 			# special handling of long TXT records
-			if resource_type == 'TXT':
+			if resource_type == 'TXT' and "_domainkey" in label:
 				consolidated_text = ""
 				for sub in data:
 					consolidated_text += f'"{sub}" '
 				consolidated_text = consolidated_text.rstrip(' ')
 				chg_rr.append({'Value': consolidated_text})
+			elif resource_type == 'TXT':
+				for sub in data:
+					tmp = f'"{sub}" '
+					chg_rr.append({'Value': tmp})
 			else:
 				for sub in data:
 					chg_rr.append({'Value': sub})
 		else:
 			# special handling of quotes in TXT record
 			if resource_type == 'TXT':
+				# if data.find('"') != -1:
+				# 	tmp = f'{data}'
+				# else:
 				tmp = f'"{data}"'
 				chg_rr.append({'Value':tmp})
 			else:
