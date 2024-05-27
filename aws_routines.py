@@ -134,12 +134,15 @@ class aws_changes:
 		# set resource record(s)
 		chg_rr = []
 		if isinstance(data, list):
-			for sub in data:
-				# special handling of quotes in TXT record
-				if resource_type == 'TXT':
-					tmp = f'"{sub}"'
-					chg_rr.append({'Value': tmp})
-				else:
+			# special handling of long TXT records
+			if resource_type == 'TXT':
+				consolidated_text = ""
+				for sub in data:
+					consolidated_text += f'"{sub}" '
+				consolidated_text = consolidated_text.rstrip(' ')
+				chg_rr.append({'Value': consolidated_text})
+			else:
+				for sub in data:
 					chg_rr.append({'Value': sub})
 		else:
 			# special handling of quotes in TXT record
