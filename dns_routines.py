@@ -1,13 +1,16 @@
 import logging
+import globals
 
 from dns import query
 from dns import zone as dnszone
 from dns import rdatatype as resource_type
 from dns.resolver import Resolver
+from dns import tsigkeyring
 
 # dns_class_* imports at bottom of module to prevent cirtular import
 
 def get_dns_zone(server,zone_name):
+	# keyring = tsigkeyring.from_text({'dnsnotify2route53':globals.config.tsig_secret})
 	axfr = dnszone.from_xfr(query.xfr(server, zone_name))
 	soa = axfr.get_soa()
 	# for rsdata in axfr.iterate_rdatasets():

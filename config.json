@@ -11,5 +11,6 @@
             "gethelpbox.org"
           ],
   "mute_botocore_debug" : true,
-  "zone_refresh_wait_interval": 300
+  "zone_refresh_wait_interval": 300,
+  "tsig_secret": "your_secret"
 }
